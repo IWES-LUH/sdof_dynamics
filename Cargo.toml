@@ -1,0 +1,53 @@
+[package]
+name = "sdof_dynamics"
+version = "0.1.0"
+edition = "2021"
+description = "Interactive single-degree-of-freedom (mass-spring-damper) dynamics explorer."
+authors = ["Basem Rajjoub <basem.rajjoub@iwes.hannover-uni.de>"]
+license = "MIT"
+
+# ══════════════════════════════════════════════════════════════════════════════
+# SDOF Dynamics Explorer — IWES / LUH
+#
+# Native build (with MathJax-rendered theory panel):
+#   cargo build --release --bin sdof_dynamics --features mathjax
+#
+# Web (WASM) build (no MathJax — falls back to plain text equations):
+#   cargo build --target wasm32-unknown-unknown --release --bin sdof_dynamics_web
+#   tools/wasm-bindgen-0.2.114-x86_64-pc-windows-msvc/wasm-bindgen.exe \
+#       --target web --out-dir dist/web \
+#       target/wasm32-unknown-unknown/release/sdof_dynamics_web.wasm
+# ══════════════════════════════════════════════════════════════════════════════
+
+[dependencies]
+eframe = { version = "0.29", features = ["wgpu"] }
+egui_plot = "0.29"
+image = { version = "0.25", default-features = false, features = ["png"] }
+web-sys = "0.3"
+wasm-bindgen = "0.2"
+wasm-bindgen-futures = "0.4"
+
+# Heavy deps — only enabled by the `mathjax` feature (native build only)
+mathjax_svg = { version = "3.1", optional = true }
+resvg       = { version = "0.44", optional = true }
+
+[features]
+default = []
+mathjax = ["mathjax_svg", "resvg"]
+
+# ── Binary targets ──
+
+# Native desktop binary (Windows: GUI subsystem, no console window)
+[[bin]]
+name = "sdof_dynamics"
+path = "apps/sdof_dynamics.rs"
+required-features = ["mathjax"]
+
+# WebAssembly binary (no MathJax — pure egui rendering)
+[[bin]]
+name = "sdof_dynamics_web"
+path = "apps/sdof_dynamics.rs"
+
+[profile.release]
+opt-level = 3
+lto = "thin"
