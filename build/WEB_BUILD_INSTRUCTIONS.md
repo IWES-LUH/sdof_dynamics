@@ -76,7 +76,7 @@ Visit: **`http://localhost:8000`**
 
 ## Features
 
-- ✅ Full SDOF dynamics UI without LaTeX equations (theory panel hidden on web)
+- ✅ Full SDOF dynamics UI — theory panel shown with plain-text equations (no LaTeX)
 - ✅ Real-time simulation and plotting
 - ✅ Zoom and pan controls
 - ✅ Animation support
@@ -112,6 +112,5 @@ The WASM binary is ~5MB uncompressed. Most web servers gzip it automatically, re
 
 ## Differences from Desktop Version
 
-- **No LaTeX rendering**: The mathjax feature is disabled to avoid V8 JavaScript engine dependency
-- **Right panel (theory) is hidden**: Equations are not displayed on the web version
-- **Everything else works normally**: All plots, simulations, and controls function identically
+- **No LaTeX rendering**: The mathjax feature is disabled to avoid V8 JavaScript engine dependency; equations are rendered as plain Unicode text instead
+- **Everything else works normally**: Theory panel, all plots, simulations, and controls function identically

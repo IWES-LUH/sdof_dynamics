@@ -4,9 +4,6 @@ debug
 /target/
 /dist/
 
-# CI build scratch directory
-/_site/
-
 # Downloaded wasm-bindgen binary (Unix builds)
 /tools/wasm-bindgen
 
