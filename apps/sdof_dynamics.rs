@@ -684,6 +684,103 @@ impl SdofApp {
         });
     }
 
+    // ── Plain-text equations (no MathJax) — used in the WebAssembly build ──
+    #[cfg(not(feature = "mathjax"))]
+    fn draw_equations_plain(&mut self, ui: &mut egui::Ui) {
+        let acc = self.base.theme.accent_color();
+        let tc  = self.base.theme.text_color();
+
+        let (m, c, k, f0, omega) = (self.mass, self.damping, self.stiffness,
+                                     self.force_amp, self.excit_freq);
+        let wn   = self.wn();
+        let zeta = self.zeta();
+        let r    = self.r();
+        let h    = amplification(r, zeta);
+        let phi  = phase_lag(r, zeta).to_degrees();
+        let case = detect_case(zeta, f0, r);
+
+        // Helper: small caption above each equation block
+        let caption = |ui: &mut egui::Ui, text: &str, tc: egui::Color32| {
+            ui.label(egui::RichText::new(text).size(10.0).color(tc.linear_multiply(0.55)));
+        };
+        // Helper: render an equation line in monospace
+        let eq = |ui: &mut egui::Ui, text: String| {
+            ui.label(egui::RichText::new(text).monospace().size(13.0));
+        };
+
+        ui.vertical(|ui| {
+            ui.label(egui::RichText::new("SDOF Theory").strong().size(15.0).color(acc));
+            ui.add_space(4.0);
+
+            caption(ui, "Equation of Motion", tc);
+            eq(ui, "m·x'' + c·x' + k·x = F0·cos(Ω t)".to_string());
+            eq(ui, format!("{:.1}·x'' + {:.1}·x' + {:.0}·x = {:.1}·cos(Ω t)", m, c, k, f0));
+            ui.separator();
+
+            caption(ui, "Natural Frequency", tc);
+            eq(ui, format!("ω_n = √(k/m) = {:.2} rad/s", wn));
+            ui.separator();
+
+            caption(ui, "Damping Ratio", tc);
+            eq(ui, format!("ζ = c / (2·√(m·k)) = {:.3}", zeta));
+
+            if f0 > 1e-6 {
+                ui.separator();
+                caption(ui, "Frequency Ratio", tc);
+                eq(ui, format!("r = Ω / ω_n = {:.3}", r));
+
+                ui.separator();
+                caption(ui, "Amplification", tc);
+                if case == "Resonance" {
+                    eq(ui, "H(r) → ∞   (resonance)".to_string());
+                } else {
+                    eq(ui, format!("H(r) = 1 / √((1 - r²)² + (2·ζ·r)²) = {:.2}", h));
+                }
+
+                ui.separator();
+                caption(ui, "Phase Lag", tc);
+                eq(ui, format!("φ = arctan( 2·ζ·r / (1 - r²) ) = {:.1}°", phi));
+            }
+
+            ui.separator();
+            let fn_hz = wn / (2.0 * PI);
+            let fe_hz = omega / (2.0 * PI);
+            ui.label(egui::RichText::new(
+                format!("fn = {:.2} Hz    fe = {:.2} Hz    r = {:.3}", fn_hz, fe_hz, r))
+                .size(11.0).color(tc.linear_multiply(0.65)));
+            ui.label(egui::RichText::new(format!("> {}", case))
+                .strong().size(12.0).color(case_color(case)));
+
+            // ── Preset note (bottom) ──
+            if !self.preset_note.is_empty() {
+                egui::Frame::none()
+                    .fill(if self.base.theme.dark_mode {
+                        egui::Color32::from_rgb(28, 38, 54)
+                    } else {
+                        egui::Color32::from_rgb(225, 235, 248)
+                    })
+                    .inner_margin(egui::Margin::same(8.0))
+                    .outer_margin(egui::Margin { left: 0.0, right: 12.0, top: 8.0, bottom: 4.0 })
+                    .rounding(egui::Rounding::same(5.0))
+                    .show(ui, |ui| {
+                        ui.label(egui::RichText::new(
+                            format!("ω_n = {:.2} rad/s    f_n = {:.3} Hz    ζ = {:.4}",
+                                    wn, fn_hz, zeta))
+                            .monospace().size(11.0));
+                        if f0 > 1e-6 {
+                            ui.label(egui::RichText::new(
+                                format!("r = {:.3}    H(r) = {:.2}", r, h))
+                                .monospace().size(11.0));
+                        }
+                        ui.add_space(4.0);
+                        ui.label(egui::RichText::new(self.preset_note)
+                            .size(11.0)
+                            .color(self.base.theme.text_color()));
+                    });
+            }
+        });
+    }
+
     // ── Time response plot ─────────────────────────────────────────────────
     fn draw_time_plot(&mut self, ui: &mut egui::Ui) {
         // Use the cached response (same data as animation)
@@ -991,7 +1088,10 @@ impl IwesApp for SdofApp {
 
         let total_h  = ui.available_height();
         let avail_w  = ui.available_width();
-        let left_w   = (avail_w * self.base.content_split).clamp(320.0, avail_w - 220.0);
+        // Guard against narrow viewports (mobile / split screens) so that
+        // clamp(min, max) never has min > max.
+        let lw_max   = (avail_w - 220.0).max(320.0);
+        let left_w   = (avail_w * self.base.content_split).clamp(320.0, lw_max);
         let bar_h   = 30.0_f32;
         let hnd_h   =  4.0_f32; // drag handle height
         // Total height available for the three resizable sections
@@ -1073,6 +1173,22 @@ impl IwesApp for SdofApp {
                             .max_height(total_h)
                             .show(ui, |ui| {
                                 self.draw_equations(ui);
+                            });
+                    });
+            }
+            // Plain-text equations fallback when MathJax isn't available
+            // (e.g. WebAssembly build — V8/MathJax can't be compiled to WASM).
+            #[cfg(not(feature = "mathjax"))]
+            {
+                let right_w = (avail_w - left_w - 6.0).max(180.0);
+                ui.allocate_ui_with_layout(
+                    egui::vec2(right_w, total_h),
+                    egui::Layout::top_down(egui::Align::LEFT),
+                    |ui| {
+                        egui::ScrollArea::vertical()
+                            .max_height(total_h)
+                            .show(ui, |ui| {
+                                self.draw_equations_plain(ui);
                             });
                     });
             }
