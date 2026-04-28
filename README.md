@@ -229,7 +229,7 @@ sdof_dynamics/
 
 With no external force ($F_0 = 0$), the response depends on the damping ratio:
 
-- **$\zeta = 0$** (undamped): $x(t) = x_0\cos(\omega_n t) + \dfrac{v_0}{\omega_n}\sin(\omega_n t)$ — eternal oscillation
+- **$\zeta = 0$** (undamped): $x(t) = x_0\cos(\omega_n t) + \frac{v_0}{\omega_n}\sin(\omega_n t)$ — eternal oscillation
 - **$0 < \zeta < 1$** (underdamped): $x(t) = A e^{-\zeta\omega_n t}\cos(\omega_d t - \theta)$, where $\omega_d = \omega_n\sqrt{1-\zeta^2}$
 - **$\zeta = 1$** (critically damped): fastest possible non-oscillatory return to rest
 - **$\zeta > 1$** (overdamped): two real exponential decay modes, slower than critical
@@ -241,10 +241,10 @@ With harmonic forcing $F_0\cos(\Omega t)$, the steady-state amplitude is $x_\mat
 | Regime | $r$ range | Behaviour |
 |--------|-----------|-----------|
 | Quasi-static | $r \ll 1$ | $H \approx 1$, response tracks force in phase |
-| Resonance | $r \approx 1$ | $H \to 1/(2\zeta) \gg 1$ for small $\zeta$, 90° phase lag |
+| Resonance | $r \approx 1$ | $H \to \frac{1}{2\zeta} \gg 1$ for small $\zeta$, 90° phase lag |
 | Isolation | $r \gg 1$ | $H \to 0$, response 180° out of phase |
 
-At resonance ($r = 1$), $H = 1/(2\zeta)$. For a tower with $\zeta = 0.01$, this gives amplification of $50\times$ — explaining why even small rotor imbalances can cause large oscillations if the excitation frequency coincides with $\omega_n$.
+At resonance ($r = 1$), $H = \dfrac{1}{2\zeta}$. For a tower with $\zeta = 0.01$, this gives amplification of $50\times$ — explaining why even small rotor imbalances can cause large oscillations if the excitation frequency coincides with $\omega_n$.
 
 ### Numerical Integration
 
