@@ -47,8 +47,10 @@ H(r, ζ) = 1 / √( (1 - r²)² + (2·ζ·r)² )
 and the **phase lag** between force and response is:
 
 ```
-φ = arctan( 2·ζ·r / (1 - r²) )
+φ = atan2( 2·ζ·r ,  1 − r² )        (0 ≤ φ ≤ π)
 ```
+
+Using `atan2` (not plain `arctan`) is essential: for r > 1 the denominator is negative, and the lag must continue past π/2 toward π rather than wrapping back to negative values.
 
 ---
 
@@ -127,7 +129,7 @@ Live-updating equations with current numerical values substituted for all parame
 - ω_n, ζ, r, H(r), φ computed from current parameters
 - Dynamic case label: *Undamped Free / Underdamped / Critically Damped / Overdamped / Forced Vibration / Resonance*
 - **Desktop**: equations rendered as typeset LaTeX via MathJax → SVG
-- **Browser**: equations displayed as Unicode text (e.g. `ζ = c / (2·√(m·k)) = 0.050`) — MathJax requires a V8 JavaScript runtime that cannot be compiled to WebAssembly
+- **Browser**: equations displayed as Unicode text (e.g. `ζ = c / (2·√(m·k)) = 0.050`) — see the rendering note at the top of the README
 
 ### Presets
 
@@ -162,9 +164,7 @@ Open the [live web app](https://IWES-LUH.github.io/sdof_dynamics) in any modern 
 
 ### Desktop Version (Windows / Linux / macOS)
 
-[Download from the latest release](../../releases/latest) — no installer needed, single executable per platform. The Windows build requires a Vulkan-capable GPU driver (any modern GPU). All builds include LaTeX equation rendering.
-
-Provides rendered LaTeX equations in the theory panel via MathJax.
+[Download from the latest release](../../releases/latest) — no installer needed, single executable per platform. The Windows build requires a Vulkan-capable GPU driver (any modern GPU). All builds include typeset LaTeX equations in the theory panel via MathJax.
 
 ---
 
