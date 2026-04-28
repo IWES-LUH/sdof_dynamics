@@ -1,0 +1,64 @@
+name: Deploy GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ubuntu-wasm-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ubuntu-wasm-
+
+      - name: Build WASM
+        run: cargo build --target wasm32-unknown-unknown --release --bin sdof_dynamics_web
+
+      - name: Install wasm-bindgen-cli
+        run: |
+          curl -L -o wb.tar.gz \
+            https://github.com/rustwasm/wasm-bindgen/releases/download/0.2.114/wasm-bindgen-0.2.114-x86_64-unknown-linux-musl.tar.gz
+          tar -xzf wb.tar.gz
+          mv wasm-bindgen-0.2.114-x86_64-unknown-linux-musl/wasm-bindgen /usr/local/bin/
+
+      - name: Generate bindings and stage site
+        run: |
+          mkdir -p _site
+          wasm-bindgen --target web --out-dir _site \
+            target/wasm32-unknown-unknown/release/sdof_dynamics_web.wasm
+          cp web/index.html _site/index.html
+
+      - uses: actions/configure-pages@v4
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

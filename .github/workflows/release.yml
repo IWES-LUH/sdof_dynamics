@@ -4,36 +4,45 @@ on:
   push:
     tags:
       - "v*.*.*"
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: "Version tag (e.g. v1.0.0)"
+        required: true
 
 permissions:
   contents: write
 
 jobs:
-  # ── Native binaries (one job per platform) ────────────────────────────────
+  # ── Native binaries ───────────────────────────────────────────────────────
   build-native:
-    name: Native — ${{ matrix.os }}
+    name: ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         include:
           - os: windows-latest
-            artifact: sdof_dynamics.exe
-            asset_name: sdof_dynamics-windows-x86_64.exe
+            name: Windows x86-64
+            binary: sdof_dynamics.exe
+            asset: sdof_dynamics-windows-x86_64.exe
+
           - os: ubuntu-latest
-            artifact: sdof_dynamics
-            asset_name: sdof_dynamics-linux-x86_64
+            name: Linux x86-64
+            binary: sdof_dynamics
+            asset: sdof_dynamics-linux-x86_64
+
           - os: macos-latest
-            artifact: sdof_dynamics
-            asset_name: sdof_dynamics-macos-aarch64
+            name: macOS Apple Silicon
+            binary: sdof_dynamics
+            asset: sdof_dynamics-macos-aarch64
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Rust stable
-        uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@stable
 
-      - name: Cache Cargo
-        uses: actions/cache@v4
+      - uses: actions/cache@v4
         with:
           path: |
             ~/.cargo/registry
@@ -42,29 +51,31 @@ jobs:
           key: ${{ runner.os }}-native-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: ${{ runner.os }}-native-
 
-      - name: Build native binary
+      - name: Build
         run: cargo build --release --bin sdof_dynamics --features mathjax
 
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ matrix.asset_name }}
-          path: target/release/${{ matrix.artifact }}
+      - name: Rename artifact
+        shell: bash
+        run: |
+          cp target/release/${{ matrix.binary }} ${{ matrix.asset }}
 
-  # ── WebAssembly build ─────────────────────────────────────────────────────
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.asset }}
+          path: ${{ matrix.asset }}
+
+  # ── WebAssembly ───────────────────────────────────────────────────────────
   build-wasm:
     name: WebAssembly
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Rust wasm32 target
-        uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@stable
         with:
           targets: wasm32-unknown-unknown
 
-      - name: Cache Cargo
-        uses: actions/cache@v4
+      - uses: actions/cache@v4
         with:
           path: |
             ~/.cargo/registry
@@ -78,12 +89,12 @@ jobs:
 
       - name: Install wasm-bindgen-cli
         run: |
-          curl -L -o wasm-bindgen.tar.gz \
+          curl -L -o wb.tar.gz \
             https://github.com/rustwasm/wasm-bindgen/releases/download/0.2.114/wasm-bindgen-0.2.114-x86_64-unknown-linux-musl.tar.gz
-          tar -xzf wasm-bindgen.tar.gz
-          mv wasm-bindgen-0.2.114-x86_64-unknown-linux-musl/wasm-bindgen /usr/local/bin/wasm-bindgen
+          tar -xzf wb.tar.gz
+          mv wasm-bindgen-0.2.114-x86_64-unknown-linux-musl/wasm-bindgen /usr/local/bin/
 
-      - name: Generate JS bindings and package
+      - name: Package web bundle
         run: |
           mkdir -p _web
           wasm-bindgen --target web --out-dir _web \
@@ -91,59 +102,61 @@ jobs:
           cp web/index.html _web/index.html
           cd _web && zip -r ../sdof_dynamics-web.zip .
 
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
           name: sdof_dynamics-web
           path: sdof_dynamics-web.zip
 
-  # ── Create GitHub Release ─────────────────────────────────────────────────
+  # ── Publish Release ───────────────────────────────────────────────────────
   release:
     name: Publish Release
     needs: [build-native, build-wasm]
     runs-on: ubuntu-latest
     steps:
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v4
         with:
           path: artifacts
           merge-multiple: true
 
-      - name: List artifacts
-        run: ls -lh artifacts/
+      - name: Resolve version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "tag=${{ github.event.inputs.tag_name }}" >> $GITHUB_OUTPUT
+          else
+            echo "tag=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+          fi
 
-      - name: Create GitHub Release
+      - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          name: "SDOF Dynamics Explorer ${{ github.ref_name }}"
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: "SDOF Dynamics Explorer ${{ steps.version.outputs.tag }}"
           body: |
-            ## SDOF Dynamics Explorer ${{ github.ref_name }}
+            ## Downloads
 
-            ### Downloads
+            | Platform | File | Notes |
+            |----------|------|-------|
+            | **Windows** (x86-64) | `sdof_dynamics-windows-x86_64.exe` | LaTeX equations, no install needed |
+            | **Linux** (x86-64) | `sdof_dynamics-linux-x86_64` | LaTeX equations |
+            | **macOS** (Apple Silicon) | `sdof_dynamics-macos-aarch64` | LaTeX equations |
+            | **Web** (all platforms) | `sdof_dynamics-web.zip` | WASM bundle, serve locally or deploy |
 
-            | Platform | File |
-            |----------|------|
-            | Windows (x86-64) | `sdof_dynamics-windows-x86_64.exe` — desktop app with LaTeX equations |
-            | Linux (x86-64) | `sdof_dynamics-linux-x86_64` — desktop app with LaTeX equations |
-            | macOS (Apple Silicon) | `sdof_dynamics-macos-aarch64` — desktop app with LaTeX equations |
-            | Web (all platforms) | `sdof_dynamics-web.zip` — self-contained WASM bundle, serve with any HTTP server |
-
-            ### Web Version
-            The live web app is always available at the GitHub Pages URL (no download needed).
-
-            ### Usage — Web bundle
+            ### Run the web bundle locally
             ```bash
             unzip sdof_dynamics-web.zip -d sdof_web
-            cd sdof_web
-            python3 -m http.server 8000
+            cd sdof_web && python3 -m http.server 8000
             # open http://localhost:8000
             ```
 
-            ### Usage — Linux / macOS binary
+            ### Linux / macOS
             ```bash
             chmod +x sdof_dynamics-linux-x86_64
             ./sdof_dynamics-linux-x86_64
             ```
+
+            ---
+            Live web version: https://iwes-luh.github.io/sdof_dynamics/
           files: |
             artifacts/sdof_dynamics-windows-x86_64.exe
             artifacts/sdof_dynamics-linux-x86_64

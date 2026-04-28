@@ -14,7 +14,7 @@ Built with Rust + egui. Runs natively on Windows (with rendered LaTeX equations)
 
 **[Launch Web App →](https://IWES-LUH.github.io/sdof_dynamics)**
 
-[Download the latest release](../../releases/latest) for native desktop binaries (Windows, Linux, macOS) with full LaTeX-rendered equations.
+**[Download Latest Release →](../../releases/latest)** — native desktop binaries for Windows, Linux, and macOS with full LaTeX-rendered equations.
 
 > **Note — equation rendering:** The web version displays equations using Unicode characters (e.g. `ω_n = √(k/m)`) rather than typeset LaTeX. This is a limitation of the Rust → WebAssembly compilation pipeline: the MathJax rendering engine depends on a V8 JavaScript runtime, which cannot itself be compiled to WASM. The desktop app renders all equations as proper LaTeX via an embedded MathJax/SVG pipeline.
 
@@ -160,9 +160,9 @@ Sixteen one-click presets spanning generic dynamics and real wind energy compone
 
 Open the [live web app](https://IWES-LUH.github.io/sdof_dynamics) in any modern browser. All controls and plots work identically to the desktop version. Equations are rendered as Unicode text rather than LaTeX due to WebAssembly runtime constraints (see note above).
 
-### Windows Desktop Version
+### Desktop Version (Windows / Linux / macOS)
 
-[Download `sdof_dynamics.exe`](https://IWES-LUH.github.io/sdof_dynamics/sdof_dynamics.exe) — no installer needed, single executable. Requires Windows 10/11 with a Vulkan-capable GPU driver.
+[Download from the latest release](../../releases/latest) — no installer needed, single executable per platform. The Windows build requires a Vulkan-capable GPU driver (any modern GPU). All builds include LaTeX equation rendering.
 
 Provides rendered LaTeX equations in the theory panel via MathJax.
 
