@@ -16,7 +16,7 @@ Built with Rust + egui. Runs natively on Windows (with rendered LaTeX equations)
 
 **[Download Latest Release →](../../releases/latest)** — native desktop binaries for Windows, Linux, and macOS with full LaTeX-rendered equations.
 
-> **Note — equation rendering inside the app:** the web build of the app displays equations using Unicode characters (e.g. `ω_n = √(k/m)`) rather than typeset LaTeX. This is a limitation of the Rust → WebAssembly compilation pipeline: the MathJax rendering engine depends on a V8 JavaScript runtime, which cannot itself be compiled to WASM. The desktop app renders all equations as proper LaTeX via an embedded MathJax/SVG pipeline. *(This README, rendered by GitHub, shows full LaTeX below.)*
+> **Note — equation rendering inside the app:** the web build of the app displays equations using Unicode characters (e.g. `ω_n = √(k/m)`) rather than typeset LaTeX. This is a limitation of the Rust → WebAssembly compilation pipeline: the MathJax rendering engine depends on a V8 JavaScript runtime, which cannot itself be compiled to WASM. The desktop app renders all equations as proper LaTeX via an embedded MathJax/SVG pipeline. *(This README, rendered by GitHub via MathJax, shows full LaTeX below.)*
 
 ---
 
@@ -26,23 +26,23 @@ A single-degree-of-freedom system is the simplest mechanical model of a vibratin
 
 Despite its simplicity, the SDOF model captures the essential dynamics of nearly every real structure near one of its natural frequencies. The governing **equation of motion** is:
 
-$$m\,\ddot{x} \;+\; c\,\dot{x} \;+\; k\,x \;=\; F_0\cos(\Omega\, t)$$
+$$m\ddot{x} + c\dot{x} + kx = F_0\cos(\Omega t)$$
 
 From this single equation, three dimensionless parameters control all behaviour:
 
 | Parameter | Formula | Physical meaning |
 |-----------|---------|-----------------|
 | Natural frequency | $\omega_n = \sqrt{k/m}$ | Frequency at which the system oscillates freely |
-| Damping ratio | $\zeta = \dfrac{c}{2\sqrt{m\,k}}$ | Fraction of critical damping; governs decay rate |
+| Damping ratio | $\zeta = \dfrac{c}{2\sqrt{mk}}$ | Fraction of critical damping; governs decay rate |
 | Frequency ratio | $r = \Omega / \omega_n$ | Ratio of excitation to natural frequency |
 
 The **steady-state amplitude amplification** (dynamic magnification factor) is:
 
-$$H(r,\zeta) \;=\; \dfrac{1}{\sqrt{(1-r^2)^2 + (2\zeta r)^2}}$$
+$$H(r,\zeta) = \dfrac{1}{\sqrt{(1-r^2)^2 + (2\zeta r)^2}}$$
 
 and the **phase lag** between force and response is:
 
-$$\varphi \;=\; \operatorname{atan2}\!\left(2\zeta r,\; 1-r^2\right), \qquad 0 \le \varphi \le \pi.$$
+$$\varphi = \mathrm{atan2}\left(2\zeta r,\ 1-r^2\right), \qquad 0 \le \varphi \le \pi$$
 
 Using `atan2` (not plain `arctan`) is essential: for $r > 1$ the denominator is negative, and the lag must continue past $\pi/2$ toward $\pi$ rather than wrapping back to negative values.
 
@@ -56,11 +56,11 @@ Wind turbines are large, flexible structures operating in a broadband dynamic en
 
 The wind turbine tower is the most critical structural component from a dynamics perspective. Its first fore-aft (FA) bending mode governs the structural design.
 
-- **Typical $f_n \approx 0.25\text{–}0.35$ Hz** for onshore turbines (5 MW class, hub height ~100 m)
+- **Typical $f_n \approx 0.25$–$0.35$ Hz** for onshore turbines (5 MW class, hub height ~100 m)
 - The rotor produces periodic excitation at the **1P frequency** (once per revolution) and **3P frequency** (blade-passing, three blades × rotational speed)
-- At 12 rpm: $\text{1P} = 0.2$ Hz, $\text{3P} = 0.6$ Hz
+- At 12 rpm: 1P = 0.2 Hz, 3P = 0.6 Hz
 - Tower designs target a natural frequency in the **"1P–3P gap"** (between 0.2 and 0.6 Hz) — the so-called *soft-stiff* design. Landing in either exclusion zone causes resonance-driven fatigue damage
-- Structural damping is very low ($\zeta \approx 1\text{–}2\%$), so even $r$ values slightly off resonance can produce meaningful dynamic amplification
+- Structural damping is very low ($\zeta \approx 1$–$2\%$), so even $r$ values slightly off resonance can produce meaningful dynamic amplification
 
 ### Rotor Blades
 
@@ -69,7 +69,7 @@ Blades have multiple structural modes, of which two are most critical:
 **Flapwise (out-of-plane):**
 - Responds to aerodynamic thrust fluctuations
 - $f_n \approx 1.0$ Hz for a 61 m blade (5 MW class)
-- Aerodynamic damping is positive and substantial ($\zeta_\text{eff} \approx 1\text{–}3\%$), aiding stability
+- Aerodynamic damping is positive and substantial ($\zeta_\mathrm{eff} \approx 1$–$3\%$), aiding stability
 
 **Edgewise (in-plane):**
 - Responds to gravity loading (1P) and drag fluctuations
@@ -79,15 +79,15 @@ Blades have multiple structural modes, of which two are most critical:
 
 ### Drivetrain
 
-The drivetrain (rotor hub → main shaft → gearbox → generator) has a first torsional resonance at $f_n \approx 2$ Hz. Excitation from grid events (voltage dips, emergency stops) can produce large torque spikes. Low damping ($\zeta \approx 1\text{–}2\%$) means transient resonance excitation is a primary fatigue driver for gearbox components.
+The drivetrain (rotor hub → main shaft → gearbox → generator) has a first torsional resonance at $f_n \approx 2$ Hz. Excitation from grid events (voltage dips, emergency stops) can produce large torque spikes. Low damping ($\zeta \approx 1$–$2\%$) means transient resonance excitation is a primary fatigue driver for gearbox components.
 
 ### Offshore Monopile
 
 Offshore turbines on monopile foundations face an additional loading environment:
 
 - Larger structural mass (rotor + nacelle + tower + pile $\approx 800$ t) lowers $f_n$ to $\approx 0.25$ Hz
-- Soil and hydrodynamic damping raise total $\zeta$ to $\approx 2\text{–}3\%$
-- First-order wave loading at typical periods of 8–12 s (0.08–0.12 Hz) excites the structure in the **quasi-static regime** ($r \approx 0.3\text{–}0.4$), giving moderate amplification $H \approx 1.1\text{–}1.3$
+- Soil and hydrodynamic damping raise total $\zeta$ to $\approx 2$–$3\%$
+- First-order wave loading at typical periods of 8–12 s (0.08–0.12 Hz) excites the structure in the **quasi-static regime** ($r \approx 0.3$–$0.4$), giving moderate amplification $H \approx 1.1$–$1.3$
 - Second-order wave forces and nonlinear effects can excite the natural frequency directly (*ringing*), making time-domain simulation essential for fatigue assessment
 
 ---
@@ -113,14 +113,14 @@ RK4-integrated displacement $x(t)$ and optionally velocity $\dot{x}(t)$, with:
 ### Frequency Response Function (FRF)
 
 Side-by-side plots of $H(r)$ and $\varphi(r)$:
-- Five reference curves for $\zeta = 0.05,\; 0.1,\; 0.2,\; 0.5,\; 1.0$
+- Five reference curves for $\zeta = 0.05, 0.1, 0.2, 0.5, 1.0$
 - Current system highlighted; operating point marked in red
 - Instantly shows whether the system is in the sub-resonant, resonant, or isolation regime
 
 ### Theory Panel
 
 Live-updating equations with current numerical values substituted for all parameters:
-- $\omega_n,\; \zeta,\; r,\; H(r),\; \varphi$ computed from current parameters
+- $\omega_n$, $\zeta$, $r$, $H(r)$, $\varphi$ computed from current parameters
 - Dynamic case label: *Undamped Free / Underdamped / Critically Damped / Overdamped / Forced Vibration / Resonance*
 - **Desktop**: equations rendered as typeset LaTeX via MathJax → SVG
 - **Browser**: equations displayed as Unicode text (e.g. `ζ = c / (2·√(m·k)) = 0.050`) — see the rendering note at the top of the README
@@ -137,7 +137,7 @@ Sixteen one-click presets spanning generic dynamics and real wind energy compone
 | Generic | Overdamped | Pure exponential decay, sluggish return |
 | Generic | Forced r = 0.5 | Sub-resonant forced response |
 | Generic | Resonance | $r \approx 1$, low $\zeta$ — amplitude growth |
-| Generic | Forced r = 2 | Isolation regime, $180°$ phase flip |
+| Generic | Forced r = 2 | Isolation regime, 180° phase flip |
 | Generic | Car suspension | Quarter-car model, $\zeta \approx 0.55$ |
 | Wind | Tower FA (free) | Onshore tower free vibration, $f_n \approx 0.30$ Hz |
 | Wind | Tower FA (1P) | 1P rotor excitation, soft-stiff operating point |
@@ -229,26 +229,26 @@ sdof_dynamics/
 
 With no external force ($F_0 = 0$), the response depends on the damping ratio:
 
-- **$\zeta = 0$** (undamped): &nbsp; $x(t) = x_0\cos(\omega_n t) + \dfrac{v_0}{\omega_n}\sin(\omega_n t)$ — eternal oscillation
-- **$0 < \zeta < 1$** (underdamped): &nbsp; $x(t) = A\,e^{-\zeta\omega_n t}\cos(\omega_d t - \theta)$, where $\omega_d = \omega_n\sqrt{1-\zeta^2}$
+- **$\zeta = 0$** (undamped): $x(t) = x_0\cos(\omega_n t) + \dfrac{v_0}{\omega_n}\sin(\omega_n t)$ — eternal oscillation
+- **$0 < \zeta < 1$** (underdamped): $x(t) = A e^{-\zeta\omega_n t}\cos(\omega_d t - \theta)$, where $\omega_d = \omega_n\sqrt{1-\zeta^2}$
 - **$\zeta = 1$** (critically damped): fastest possible non-oscillatory return to rest
 - **$\zeta > 1$** (overdamped): two real exponential decay modes, slower than critical
 
 ### Forced Vibration
 
-With harmonic forcing $F_0\cos(\Omega t)$, the steady-state amplitude is $x_\text{ss} = H(r)\cdot F_0/k$, where $H(r)$ is the amplification factor. Three regimes:
+With harmonic forcing $F_0\cos(\Omega t)$, the steady-state amplitude is $x_\mathrm{ss} = H(r)\cdot F_0/k$, where $H(r)$ is the amplification factor. Three regimes:
 
 | Regime | $r$ range | Behaviour |
 |--------|-----------|-----------|
 | Quasi-static | $r \ll 1$ | $H \approx 1$, response tracks force in phase |
-| Resonance | $r \approx 1$ | $H \to 1/(2\zeta) \gg 1$ for small $\zeta$, $90°$ phase lag |
-| Isolation | $r \gg 1$ | $H \to 0$, response $180°$ out of phase |
+| Resonance | $r \approx 1$ | $H \to 1/(2\zeta) \gg 1$ for small $\zeta$, 90° phase lag |
+| Isolation | $r \gg 1$ | $H \to 0$, response 180° out of phase |
 
 At resonance ($r = 1$), $H = 1/(2\zeta)$. For a tower with $\zeta = 0.01$, this gives amplification of $50\times$ — explaining why even small rotor imbalances can cause large oscillations if the excitation frequency coincides with $\omega_n$.
 
 ### Numerical Integration
 
-The time response uses a **4th-order Runge-Kutta (RK4)** scheme with adaptive step count (up to 3000 points over $t_\text{end}$). RK4 provides excellent accuracy for the smooth harmonic forcing considered here. The cached solution is shared between the time plot, the animation, and the decay envelope — guaranteeing visual consistency.
+The time response uses a **4th-order Runge-Kutta (RK4)** scheme with adaptive step count (up to 3000 points over $t_\mathrm{end}$). RK4 provides excellent accuracy for the smooth harmonic forcing considered here. The cached solution is shared between the time plot, the animation, and the decay envelope — guaranteeing visual consistency.
 
 ---
 
