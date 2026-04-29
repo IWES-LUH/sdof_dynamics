@@ -43,3 +43,9 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git tag ${{ steps.ver.outputs.tag }}
           git push origin ${{ steps.ver.outputs.tag }}
+
+      - name: Trigger release build
+        if: steps.check.outputs.exists == 'false'
+        run: gh workflow run release.yml --ref ${{ steps.ver.outputs.tag }} -f tag_name=${{ steps.ver.outputs.tag }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
