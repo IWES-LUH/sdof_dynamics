@@ -37,7 +37,7 @@ jobs:
           restore-keys: ubuntu-wasm-
 
       - name: Build WASM
-        run: cargo build --target wasm32-unknown-unknown --release --bin sdof_dynamics_web
+        run: cargo build --target wasm32-unknown-unknown --release --bin sdof_dynamics_web --no-default-features
 
       - name: Install wasm-bindgen-cli
         run: |
