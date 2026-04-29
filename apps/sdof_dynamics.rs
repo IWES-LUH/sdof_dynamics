@@ -238,6 +238,7 @@ struct SdofApp {
     t_end:       f64,
     show_velocity: bool,
     show_envelope: bool,
+    show_force:    bool,
     render_scale:  f32,
     display_scale: f32,
     // Per-preset context note shown in theory panel
@@ -273,6 +274,7 @@ impl Default for SdofApp {
             t_end:       30.0,
             show_velocity: false,
             show_envelope: true,
+            show_force:    false,
             render_scale:  4.0,
             display_scale: 1.0,
             preset_note:   "",
@@ -784,13 +786,22 @@ impl SdofApp {
     // ── Time response plot ─────────────────────────────────────────────────
     fn draw_time_plot(&mut self, ui: &mut egui::Ui) {
         // Use the cached response (same data as animation)
-        let (xpts, vpts, epp, epn, t_cur) = {
+        let (xpts, vpts, fpts, epp, epn, t_cur) = {
             let resp  = self.resp_cache.as_ref().unwrap();
             let theme = &self.base.theme;
             let zeta  = self.zeta();
             let wn    = self.wn();
             let xp: PlotPoints = resp.t.iter().zip(resp.x.iter()).map(|(&t,&x)| [t,x]).collect();
             let vp: PlotPoints = resp.t.iter().zip(resp.v.iter()).map(|(&t,&v)| [t,v]).collect();
+
+            // Force F(t) = F0·cos(Ωt), normalized to peak |x| so phase shift is visible at any scale
+            let fp = if self.show_force && self.force_amp > 1e-6 {
+                let x_max = resp.x.iter().cloned().fold(0.0_f64, |a, x| a.max(x.abs()));
+                // fall back to static deflection if x is near zero (isolation regime)
+                let scale = if x_max > 1e-12 { x_max } else { self.force_amp / self.stiffness };
+                let omega = self.excit_freq;
+                Some(resp.t.iter().map(|&t| [t, scale * (omega * t).cos()]).collect::<PlotPoints>())
+            } else { None };
 
             // Decay envelope
             let (ep, en) = if self.show_envelope && self.force_amp < 1e-6
@@ -805,7 +816,7 @@ impl SdofApp {
             } else { (None, None) };
 
             let tc = self.base.time_offset % self.t_end.max(1e-3);
-            (xp, vp, ep, en, tc)
+            (xp, vp, fp, ep, en, tc)
         };
 
         let theme  = &self.base.theme;
@@ -825,6 +836,9 @@ impl SdofApp {
                 pu.line(Line::new(xpts).name(format!("x(t) - {}", case)).color(accent).width(2.0));
                 if self.show_velocity {
                     pu.line(Line::new(vpts).name("v(t) [m/s]").color(theme.series_color(1)).width(1.5));
+                }
+                if let Some(fp) = fpts {
+                    pu.line(Line::new(fp).name("F(t) [scaled]").color(theme.series_color(5)).width(1.5).style(egui_plot::LineStyle::dashed_loose()));
                 }
                 if let (Some((ep, ec)), Some(en)) = (epp, epn) {
                     pu.line(Line::new(ep).name("Envelope").color(ec).width(1.0));
@@ -1090,6 +1104,7 @@ impl IwesApp for SdofApp {
         }
         ui.checkbox(&mut self.show_velocity, "Show velocity");
         ui.checkbox(&mut self.show_envelope, "Show decay envelope");
+        ui.checkbox(&mut self.show_force,    "Show force F(t)");
 
         section_header(ui, "Equation Rendering");
         ui.add(egui::Slider::new(&mut self.render_scale,  2.0..=8.0).text("Quality").step_by(0.5));
