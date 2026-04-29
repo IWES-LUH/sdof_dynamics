@@ -169,10 +169,16 @@ Open the [live web app](https://IWES-LUH.github.io/sdof_dynamics) in any modern 
 - [Rust toolchain](https://rustup.rs/) (stable)
 - For WASM: `rustup target add wasm32-unknown-unknown`
 
-### Native Desktop (Windows, with LaTeX)
+### Native Desktop
 
 ```bat
-cargo build --release --bin sdof_dynamics --features mathjax
+cargo build --release
+```
+
+Or build and launch in one step:
+
+```bat
+cargo run --release
 ```
 
 Output: `target/release/sdof_dynamics.exe`

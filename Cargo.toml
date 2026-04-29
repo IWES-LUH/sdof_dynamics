@@ -5,15 +5,17 @@ edition = "2021"
 description = "Interactive single-degree-of-freedom (mass-spring-damper) dynamics explorer."
 authors = ["Basem Rajjoub <basem.rajjoub@iwes.hannover-uni.de>"]
 license = "MIT"
+default-run = "sdof_dynamics"
 
 # ══════════════════════════════════════════════════════════════════════════════
 # SDOF Dynamics Explorer — IWES / LUH
 #
 # Native build (with MathJax-rendered theory panel):
-#   cargo build --release --bin sdof_dynamics --features mathjax
+#   cargo build --release          (build only)
+#   cargo run   --release          (build + launch)
 #
 # Web (WASM) build (no MathJax — falls back to plain text equations):
-#   cargo build --target wasm32-unknown-unknown --release --bin sdof_dynamics_web
+#   cargo build --target wasm32-unknown-unknown --release --bin sdof_dynamics_web --no-default-features
 #   tools/wasm-bindgen-0.2.114-x86_64-pc-windows-msvc/wasm-bindgen.exe \
 #       --target web --out-dir dist/web \
 #       target/wasm32-unknown-unknown/release/sdof_dynamics_web.wasm
@@ -32,7 +34,7 @@ mathjax_svg = { version = "3.1", optional = true }
 resvg       = { version = "0.44", optional = true }
 
 [features]
-default = []
+default = ["mathjax"]
 mathjax = ["mathjax_svg", "resvg"]
 
 # ── Binary targets ──

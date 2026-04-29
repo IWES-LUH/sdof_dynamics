@@ -8,7 +8,7 @@ echo.
 
 REM Step 1: Build WASM
 echo [1/3] Building WebAssembly binary...
-cargo build --target wasm32-unknown-unknown --release --bin sdof_dynamics_web
+cargo build --target wasm32-unknown-unknown --release --bin sdof_dynamics_web --no-default-features
 if errorlevel 1 (
     echo Build failed!
     exit /b 1

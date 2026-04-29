@@ -29,7 +29,7 @@ This will:
 #### Step 1: Build the WASM binary
 
 ```bash
-cargo build --target wasm32-unknown-unknown --release --bin sdof_dynamics_web
+cargo build --target wasm32-unknown-unknown --release --bin sdof_dynamics_web --no-default-features
 ```
 
 Creates: `target/wasm32-unknown-unknown/release/sdof_dynamics_web.wasm`

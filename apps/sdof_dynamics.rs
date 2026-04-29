@@ -1,5 +1,5 @@
 // SDOF Dynamics Explorer — IWES / LUH
-// Build: cargo build --release --bin sdof_dynamics --features mathjax
+// Build: cargo build --release   Run: cargo run --release
 //
 // m*x'' + c*x' + k*x = F0*cos(Omega*t)
 //   omega_n = sqrt(k/m),  zeta = c/(2*sqrt(mk)),  r = Omega/omega_n
@@ -1032,9 +1032,9 @@ impl IwesApp for SdofApp {
         });
 
         section_header(ui, "System Parameters");
-        labeled_slider_step(ui, "Mass m:",      &mut self.mass,      0.1..=1.0e6, " kg",    1.0);
-        labeled_slider_step(ui, "Stiffness k:", &mut self.stiffness, 1.0..=1.0e8, " N/m",   1.0);
-        labeled_slider_step(ui, "Damping c:",   &mut self.damping,   0.0..=1.0e6, " Ns/m",  1.0);
+        labeled_slider_log(ui, "Mass m:",      &mut self.mass,      0.1..=1.0e6, " kg");
+        labeled_slider_log(ui, "Stiffness k:", &mut self.stiffness, 1.0..=1.0e8, " N/m");
+        labeled_slider_log(ui, "Damping c:",   &mut self.damping,   0.0..=1.0e6, " Ns/m");
 
         let wn   = self.wn();
         let zeta = self.zeta();
@@ -1053,14 +1053,28 @@ impl IwesApp for SdofApp {
             .strong().size(13.0).color(case_color(case)));
 
         section_header(ui, "Excitation  (F0 = 0 -> free)");
-        labeled_slider_step(ui, "Force F0:", &mut self.force_amp, 0.0..=1.0e6, " N", 1.0);
+        labeled_slider_log(ui, "Force F0:", &mut self.force_amp, 0.0..=1.0e6, " N");
         ui.horizontal(|ui| {
             ui.label("Omega [rad/s]:");
             ui.add(egui::Slider::new(&mut self.excit_freq, 0.0..=200.0)
                 .suffix(" rad/s").step_by(0.01));
+            if ui.small_button("→ res.").on_hover_text("Set Ω = ωₙ (move red point to resonance peak)").clicked() {
+                self.excit_freq = wn.min(200.0);
+            }
         });
+        // r slider: directly positions the red operating point on the FRF plots
+        let mut r_edit = r;
+        let r_changed = ui.horizontal(|ui| {
+            ui.label("r = Ω/ωₙ:");
+            ui.add(egui::Slider::new(&mut r_edit, 0.0..=3.0).step_by(0.001))
+                .on_hover_text("Drag to move the red point along the FRF curves.\nCtrl+drag for fine steps.")
+                .changed()
+        }).inner;
+        if r_changed && wn > 1e-9 {
+            self.excit_freq = (r_edit * wn).clamp(0.0, 200.0);
+        }
         ui.label(egui::RichText::new(
-            format!("r = Omega/omega_n = {:.3}  (Omega={:.2}, omega_n={:.2})", r, self.excit_freq, wn))
+            format!("r={:.3}  Ω={:.3} rad/s  ωₙ={:.3} rad/s", r, self.excit_freq, wn))
             .size(11.0).color(self.base.theme.text_color().linear_multiply(0.7)));
 
         section_header(ui, "Initial Conditions");

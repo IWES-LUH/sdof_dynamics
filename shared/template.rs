@@ -286,6 +286,29 @@ pub fn labeled_slider_step(
     resp.unwrap()
 }
 
+/// Logarithmic slider — equal slider travel per decade. Ideal for wide positive ranges.
+/// Tip: Ctrl+drag for 10× finer precision; click the value label to type directly.
+pub fn labeled_slider_log(
+    ui: &mut egui::Ui,
+    label: &str,
+    value: &mut f64,
+    range: std::ops::RangeInclusive<f64>,
+    suffix: &str,
+) -> egui::Response {
+    let mut resp = None;
+    ui.horizontal(|ui| {
+        ui.label(label);
+        resp = Some(ui.add(
+            egui::Slider::new(value, range)
+                .suffix(suffix)
+                .logarithmic(true)
+                .min_decimals(2)
+                .max_decimals(4),
+        ));
+    });
+    resp.unwrap()
+}
+
 /// A section header: heading text + separator below.
 pub fn section_header(ui: &mut egui::Ui, title: &str) {
     ui.separator();
