@@ -1,6 +1,6 @@
 [package]
 name = "sdof_dynamics"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 description = "Interactive single-degree-of-freedom (mass-spring-damper) dynamics explorer."
 authors = ["Basem Rajjoub <basem.rajjoub@iwes.hannover-uni.de>"]
