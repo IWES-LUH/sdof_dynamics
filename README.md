@@ -258,6 +258,12 @@ The time response uses a **4th-order Runge-Kutta (RK4)** scheme with adaptive st
 
 ---
 
+## Further Reading
+
+- [DTU Wind Turbine Stability Analysis](https://wtstab.pages.windenergy.dtu.dk/stability-analysis-of-wind-turbines/) — comprehensive resource on wind turbine aeroelastic stability, control systems, and dynamic interactions
+
+---
+
 ## License
 
 This project is released under the **MIT License** — © 2026 Institut für Windenergiesysteme (IWES), Leibniz Universität Hannover. See [LICENSE](LICENSE) for details.
