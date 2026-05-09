@@ -9,10 +9,12 @@
             margin: 0;
             padding: 0;
             overflow: hidden;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
         }
         canvas {
             display: block;
+            position: fixed;
+            top: 0;
+            left: 0;
             width: 100vw;
             height: 100vh;
         }
@@ -24,6 +26,43 @@
 </head>
 <body>
     <div id="root"></div>
+    <script>
+        (function () {
+            // ── 1. Passive-listener fix ───────────────────────────────────────
+            // eframe 0.29.x registers wheel/touch listeners without {passive:false}
+            // then calls preventDefault() — Chrome blocks this unless opted out.
+            const origAEL = EventTarget.prototype.addEventListener;
+            EventTarget.prototype.addEventListener = function (type, listener, options) {
+                if (type === 'wheel' || type === 'touchstart' || type === 'touchmove') {
+                    if (options === null || options === undefined || typeof options === 'boolean') {
+                        options = { passive: false, capture: !!options };
+                    } else if (typeof options === 'object') {
+                        options = Object.assign({}, options, { passive: false });
+                    }
+                }
+                return origAEL.call(this, type, listener, options);
+            };
+
+            // ── 2. Prevent virtual-keyboard viewport resize ───────────────────
+            // When eframe's text-agent <input> gets focus, browsers trigger a
+            // virtual-keyboard resize event that shrinks the viewport and makes
+            // eframe resize the canvas — sometimes swapping width/height and
+            // producing a white screen. inputmode="none" opts the element out.
+            const origCreateElement = Document.prototype.createElement;
+            Document.prototype.createElement = function (tag) {
+                const el = origCreateElement.call(this, tag);
+                if (tag.toLowerCase() === 'input') {
+                    el.setAttribute('inputmode', 'none');
+                }
+                return el;
+            };
+
+            // Chrome 94+ VirtualKeyboard API — overlay instead of resize
+            if ('virtualKeyboard' in navigator) {
+                navigator.virtualKeyboard.overlaysContent = true;
+            }
+        })();
+    </script>
     <script type="module">
         import init from './sdof_dynamics_web.js';
         init();

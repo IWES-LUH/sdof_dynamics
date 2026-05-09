@@ -707,6 +707,7 @@ pub fn run_app<T: IwesApp>(title: &str, size: [f32; 2]) -> eframe::Result<()> {
 
 #[cfg(target_arch = "wasm32")]
 fn wasm_run_app<T: IwesApp>(_title: &str, _size: [f32; 2]) -> eframe::Result<()> {
+    console_error_panic_hook::set_once();
     let web_options = eframe::WebOptions::default();
     wasm_bindgen_futures::spawn_local(async {
         let document = web_sys::window()
