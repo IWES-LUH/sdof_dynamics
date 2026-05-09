@@ -1,4 +1,6 @@
 #!/bin/bash
+# SDOF Dynamics Explorer — WASM build script
+# Author: Basem Rajjoub, 2026 — Institut für Windenergiesysteme (IWES), LUH
 set -e
 
 WASM_BINDGEN_VERSION="0.2.114"

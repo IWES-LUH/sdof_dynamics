@@ -1,6 +1,6 @@
 # SDOF Dynamics Explorer — Project Summary
 
-**Author:** Basem Rajjoub, Institut für Windenergiesysteme (IWES), Leibniz Universität Hannover  
+**Author:** Basem Rajjoub, 2026 — Institut für Windenergiesysteme (IWES), Leibniz Universität Hannover  
 **License:** MIT  
 **Stack:** Rust + eframe 0.29.1 / egui 0.29, compiled to native (desktop) and WebAssembly (browser)
 

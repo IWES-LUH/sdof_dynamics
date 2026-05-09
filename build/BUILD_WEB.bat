@@ -1,4 +1,6 @@
 @echo off
+REM SDOF Dynamics Explorer — WASM build script (Windows)
+REM Author: Basem Rajjoub, 2026 — Institut fuer Windenergiesysteme (IWES), LUH
 setlocal enabledelayedexpansion
 
 echo ========================================

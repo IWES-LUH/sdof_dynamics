@@ -6,7 +6,7 @@
 // ║  and simple origin gizmo (colored axis lines).                            ║
 // ║                                                                           ║
 // ║  Reference: 3d-viewport-controls-spec.md                                 ║
-// ║  Author: Basem Rajjoub, LUH / IWES                                       ║
+// ║  Author: Basem Rajjoub, 2026 — LUH / IWES                                ║
 // ╚══════════════════════════════════════════════════════════════════════════════╝
 
 use eframe::egui;

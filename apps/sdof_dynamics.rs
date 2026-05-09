@@ -1,4 +1,5 @@
 // SDOF Dynamics Explorer — IWES / LUH
+// Author: Basem Rajjoub, 2026 — Institut für Windenergiesysteme (IWES), LUH
 // Build: cargo build --release   Run: cargo run --release
 //
 // m*x'' + c*x' + k*x = F0*cos(Omega*t)

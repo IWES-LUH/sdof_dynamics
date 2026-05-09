@@ -2,6 +2,8 @@
 
 Reads dist/web/sdof_dynamics_web.js and sdof_dynamics_web_bg.wasm, inlines both
 (wasm as base64), and writes dist/sdof_dynamics_standalone.html.
+
+Author: Basem Rajjoub, 2026 — Institut für Windenergiesysteme (IWES), LUH
 """
 import base64
 import pathlib

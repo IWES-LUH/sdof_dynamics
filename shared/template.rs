@@ -78,7 +78,7 @@
 // ║    labeled_slider(ui, label, value, range, suffix)                       ║
 // ║    section_header(ui, title)                                              ║
 // ║                                                                           ║
-// ║  Author: Basem Rajjoub, LUH / IWES                                       ║
+// ║  Author: Basem Rajjoub, 2026 — LUH / IWES                                ║
 // ╚══════════════════════════════════════════════════════════════════════════════╝
 
 #![allow(dead_code)]
