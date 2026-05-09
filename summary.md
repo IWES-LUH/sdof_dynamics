@@ -104,11 +104,12 @@ cd _site && python3 -m http.server 8000
 The Linux musl wasm-bindgen binary is downloaded by the CI from:  
 `https://github.com/rustwasm/wasm-bindgen/releases/download/0.2.114/wasm-bindgen-0.2.114-x86_64-unknown-linux-musl.tar.gz`
 
-### Remote cluster access
-The cluster (LUIS HPC, LUH) does not have a display. To test the WASM app locally:
-1. Start Python server on the cluster (port 8000)
-2. On your local Windows machine: `ssh -L 8000:localhost:8000 luis`
-3. Open `http://localhost:8000` in your local browser
+### Testing on a headless remote machine
+If developing over SSH without a display, use local port forwarding to access the server in your local browser:
+```bash
+ssh -L 8000:localhost:8000 <your-host>
+# then open http://localhost:8000 locally
+```
 
 ---
 
@@ -306,4 +307,3 @@ Steps:
 - **eframe 0.29.x**: The passive-listener and virtual-keyboard bugs above are specific to this version. If upgrading to 0.30+, verify whether the JS patches in `index.html` are still needed.
 - **wasm-bindgen version must match**: `Cargo.lock` locks to `0.2.114`. The `wasm-bindgen` CLI binary used to generate JS must be exactly the same version, or it will refuse to process the WASM.
 - **mathjax feature is incompatible with WASM**: `mathjax_svg` and `resvg` use native C/C++ code. Always build the WASM target with `--no-default-features`.
-- **LUIS cluster**: Login nodes have a 30-minute job limit. Do not run long builds there without `srun`/`sbatch`. Use SSH port forwarding (`ssh -L 8000:localhost:8000 luis`) to access the served app locally.
